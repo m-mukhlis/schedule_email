@@ -1,6 +1,7 @@
 # schedule_email
 Web app for scheduling email, using Python with framework Flask
 
+Setup sender email address and its password first in my_app.py, then
 Run my_app.py
 
 Using:
