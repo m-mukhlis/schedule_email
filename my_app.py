@@ -3,6 +3,7 @@ from flask_mail import Mail, Message
 import sqlite3 as sql
 from datetime import datetime, timedelta
 from apscheduler.schedulers.background import BackgroundScheduler
+import logging
 
 
 app = Flask(__name__)
@@ -21,6 +22,10 @@ app.config['MAIL_USE_TLS'] = False
 app.config['MAIL_USE_SSL'] = True
 mail = Mail(app)
 
+logging.basicConfig(filename="save_emails.log",
+                    datefmt='%d-%m-%y %H:%M:%S',
+                    format='%(asctime)s - %(levelname)s - %(message)s',
+                    level=logging.INFO)
 
 
 def email():
@@ -36,7 +41,7 @@ def email():
         This app assume using UTC+8
         """
         utc_8 = datetime.utcnow() + timedelta(hours=8)
-        utc_8 = datetime.timestamp(utc_8)
+        utc_8_unix = datetime.timestamp(utc_8)
         con = sql.connect('email_database.db')
         c = con.cursor()
         query = "Select event_id, timestamp FROM save_emails where is_sent='False'"
@@ -46,22 +51,23 @@ def email():
             event_id = el[0]
             time_sent = el[1]
             schedule = datetime.fromisoformat(time_sent)
-            schedule = datetime.timestamp(schedule)
-            check_time = int(schedule) - (utc_8)
+            schedule_unix = datetime.timestamp(schedule)
+            check_time = int(schedule_unix) - int(utc_8_unix)
             if check_time < 0:
                 query = "update save_emails set is_sent=? where event_id=?"
-                temporary = ('True', event_id)
-                c.execute(query, temporary)
+                value = ('True', event_id)
+                c.execute(query, value)
                 con.commit()
             elif 0 <= check_time < 30:
-                query = "update save_emails set is_sent=? where event_id=?"
-                temporary = ('True', event_id)
-                c.execute(query, temporary)
+                query = "update save_emails set is_sent=?, execute_time=? where event_id=?"
+                value = ('True', str(utc_8), event_id)
+                c.execute(query, value)
                 con.commit()
                 return send_email(event_id)
             else:
                 pass
-    except:
+    except Exception as err:
+        logging.info(f"EMAIL-FUNCTION-ERROR : {str(err)}")
         pass
     finally:
         con.close()
@@ -88,7 +94,8 @@ def send_email(event_id):
             msg = Message(subject, sender=your_email, recipients=[user])
             msg.body = content
             send_app_context(app, msg)
-    except:
+    except Exception as err:
+        logging.info(f"SEND-EMAIL-ERROR : {str(err)}")
         pass
     finally:
         con.close()

@@ -5,7 +5,7 @@ from flask import render_template, request
 # connect to email_database.sq (database will be created, if not exist)
 con = sql.connect('email_database.db')
 con.execute('CREATE TABLE IF NOT EXISTS save_emails (event_id INTEGER PRIMARY KEY AUTOINCREMENT,'
-            + 'recipients TEXT, email_subject TEXT, email_content TEXT, timestamp TEXT, is_sent TEXT DEFAULT False)')
+            + 'recipients TEXT, email_subject TEXT, email_content TEXT, timestamp TEXT, is_sent TEXT DEFAULT False, execute_time TEXT)')
 con.close()
 
 
