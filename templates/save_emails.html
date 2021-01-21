@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Save Emails</title>
+</head>
+<body>
+    <h1> Schedule Email </h1>
+
+    <form method='post'>
+
+            <b>Recipients:</b> <input type="email" name="recipients" list="contacts" multiple size="100"><br>
+            <datalist id="contacts">
+                <option value="your_email@example.com">
+                <option value="he@gmail.com,she@gmail.com">
+            </datalist>
+            <p>You can enter multiple email addresses, separated by a comma (,)</p>
+            <br>
+            <b>Email Subject:</b>
+                <input type="text" name="email_subject" size="50"><br>
+            <br>
+            <b>Email Body/Content:</b>
+            <br>
+                <textarea name="email_content" rows="10" cols="40">
+                </textarea>
+            <br><br>
+            <b>Time To Be Sent:</b>
+                <input type="datetime-local" name="timestamp"><br>
+            <br>
+
+            <input type="submit" name="submit" value="Submit">
+            <input type="reset" name="reset" value="Reset"><br>
+    </form>
+
+    <p>Go to <a href="{{url_for('index')}}">main page</a></p>
+</body>
+</html>
