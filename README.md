@@ -1,6 +1,8 @@
 # schedule_email
 Web app for scheduling email, using Python with framework Flask
 
+Run my_app.py
+
 Using:
 ------
 - Python3.7
