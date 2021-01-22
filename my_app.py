@@ -10,9 +10,10 @@ app = Flask(__name__)
 mail = Mail(app)
 con = sql.connect('email_database.db')
 
-# set your email (sender) in here:
+# set (sender) your email and your time zone in here:
 your_email = 'your_gmail@gmail.com'
 your_password = 'your_password'
+your_time_zone = 8
 
 app.config['MAIL_SERVER'] = 'smtp.gmail.com' #if your email is not gmail, set using your own mail server
 app.config['MAIL_PORT'] = 465
@@ -25,7 +26,7 @@ mail = Mail(app)
 logging.basicConfig(filename="save_emails.log",
                     datefmt='%d-%m-%y %H:%M:%S',
                     format='%(asctime)s - %(levelname)s - %(message)s',
-                    level=logging.INFO)
+                    level=logging.ERROR)
 
 
 def email():
@@ -40,7 +41,7 @@ def email():
         You have to setting the timedelta same with your server time
         This app assume using UTC+8
         """
-        utc_8 = datetime.utcnow() + timedelta(hours=8)
+        utc_8 = datetime.utcnow() + timedelta(hours=your_time_zone)
         utc_8_unix = datetime.timestamp(utc_8)
         con = sql.connect('email_database.db')
         c = con.cursor()
@@ -59,22 +60,30 @@ def email():
                 c.execute(query, value)
                 con.commit()
             elif 0 <= check_time < 30:
-                query = "update save_emails set is_sent=?, execute_time=? where event_id=?"
-                value = ('True', str(utc_8), event_id)
+                query = "update save_emails set is_sent=? where event_id=?"
+                value = ('True', event_id)
+                c.execute(query, value)
+                con.commit()
+                query = "insert into sent_emails (event_id, execute_time) values (?,?)"
+                value = (event_id, str(utc_8))
                 c.execute(query, value)
                 con.commit()
                 return send_email(event_id)
             else:
                 pass
     except Exception as err:
-        logging.info(f"EMAIL-FUNCTION-ERROR : {str(err)}")
+        logging.error(f"EMAIL-FUNCTION-ERROR : {str(err)}")
         pass
     finally:
         con.close()
 
 def send_app_context(app, msg):
-    with app.app_context():
-        mail.send(msg)
+    try:
+        with app.app_context():
+            mail.send(msg)
+    except Exception as err:
+        logging.error(f"SEND-APP-CONTEXT : {str(err)}")
+        pass
 
 def send_email(event_id):
     """
@@ -95,7 +104,7 @@ def send_email(event_id):
             msg.body = content
             send_app_context(app, msg)
     except Exception as err:
-        logging.info(f"SEND-EMAIL-ERROR : {str(err)}")
+        logging.error(f"SEND-EMAIL-ERROR : {str(err)}")
         pass
     finally:
         con.close()
