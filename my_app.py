@@ -10,7 +10,7 @@ app = Flask(__name__)
 mail = Mail(app)
 con = sql.connect('email_database.db')
 
-# set (sender) your email and your time zone in here:
+# set sender information (your email and your time zone) in here:
 your_email = 'your_gmail@gmail.com'
 your_password = 'your_password'
 your_time_zone = 8
@@ -37,10 +37,6 @@ def email():
     If there is/are email(s) that needed to be sent, the function will call function send_email with event_id as the param.
     """
     try:
-        """
-        You have to setting the timedelta same with your server time
-        This app assume using UTC+8
-        """
         utc_8 = datetime.utcnow() + timedelta(hours=your_time_zone)
         utc_8_unix = datetime.timestamp(utc_8)
         con = sql.connect('email_database.db')
@@ -78,6 +74,9 @@ def email():
         con.close()
 
 def send_app_context(app, msg):
+    """
+    Function for sending email asynchronously as background task.
+    """
     try:
         with app.app_context():
             mail.send(msg)
@@ -87,8 +86,8 @@ def send_app_context(app, msg):
 
 def send_email(event_id):
     """
-    Function for sending email that to be triggered.
-    This function will call function send_app_context for sending email asynchronously as background task.
+    Function for sending email(s) that is/are triggered.
+    This function will call function send_app_context.
     """
     try:
         con = sql.connect('email_database.db')
@@ -112,8 +111,8 @@ def send_email(event_id):
 
 
 """
-This task will running as background task for checking time and send the necessary email
-This task will looping every 30s and will calling function email
+This task will run as background task for checking time and sending the necessary email.
+This task will loop every 30s and call function email.
 """
 sched = BackgroundScheduler(daemon=True)
 sched.add_job(email,'interval',seconds=30)

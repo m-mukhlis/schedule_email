@@ -2,7 +2,7 @@ import sqlite3 as sql
 from my_app import app
 from flask import render_template, request
 
-# connect to email_database.sq (database will be created, if not exist)
+# connect to email_database.db (database will be created, if not exist)
 con = sql.connect('email_database.db')
 con.execute('CREATE TABLE IF NOT EXISTS save_emails (event_id INTEGER PRIMARY KEY AUTOINCREMENT,'
             + 'recipients TEXT, email_subject TEXT, email_content TEXT, timestamp TEXT, is_sent TEXT DEFAULT False)')
